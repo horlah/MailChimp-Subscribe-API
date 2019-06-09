@@ -54,12 +54,12 @@ app.get('/subscribe-news-letter', (req, res) => {
 
   request(options, (err, response) => {
     if (err) {
-      res.send({status: false, message: 'Unable to subscribe you to the news letter, please try again'});
+      res.status(500).send({status: false, message: 'Unable to subscribe you to the news letter, please try again'});
     } else {
       if (response.statusCode === 200) {
         res.send({status: true, message: 'You have successfully subscribed to Pills Of Code news letter, thank you!'});
       } else {
-        res.send({status: false, message: 'Unable to subscribe you to the news letter, please try again'});
+        res.status(500).send({status: false, message: 'Unable to subscribe you to the news letter, please try again'});
       }
     }
   });
