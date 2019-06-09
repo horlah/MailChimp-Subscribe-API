@@ -11,13 +11,20 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Static folder
 app.use(express.static(path.join(__dirname, 'public')));
 
+// allow cross origin
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 // Signup Route
-app.post('/signup', (req, res) => {
-  const { firstName, lastName, email } = req.body;
+app.get('/subscribe-news-letter', (req, res) => {
+  const { firstName, email } = req.query;
 
   // Make sure fields are filled
-  if (!firstName || !lastName || !email) {
-    res.redirect('/fail.html');
+  if (!firstName || !email) {
+    res.status(422).send({status: false, message: 'Please enter the required field data'});
     return;
   }
 
@@ -28,8 +35,7 @@ app.post('/signup', (req, res) => {
         email_address: email,
         status: 'subscribed',
         merge_fields: {
-          FNAME: firstName,
-          LNAME: lastName
+          FNAME: firstName
         }
       }
     ]
@@ -38,22 +44,22 @@ app.post('/signup', (req, res) => {
   const postData = JSON.stringify(data);
 
   const options = {
-    url: 'https://<DC>.api.mailchimp.com/3.0/lists/<YOUR_LIST_ID>',
+    url: `https://us20.api.mailchimp.com/3.0/lists/${process.env.LIST_ID}`,
     method: 'POST',
     headers: {
-      Authorization: 'auth <YOUR_API_KEY>'
+      Authorization: `auth ${process.env.API_KEY}`
     },
     body: postData
   };
 
-  request(options, (err, response, body) => {
+  request(options, (err, response) => {
     if (err) {
-      res.redirect('/fail.html');
+      res.send({status: false, message: 'Unable to subscribe you to the news letter, please try again'});
     } else {
       if (response.statusCode === 200) {
-        res.redirect('/success.html');
+        res.send({status: true, message: 'You have successfully subscribed to Pills Of Code news letter, thank you!'});
       } else {
-        res.redirect('/fail.html');
+        res.send({status: false, message: 'Unable to subscribe you to the news letter, please try again'});
       }
     }
   });
